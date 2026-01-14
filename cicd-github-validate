@@ -1,0 +1,31 @@
+$ git push -u origin main
+Enumerating objects: 5, done.
+Counting objects: 100% (5/5), done.
+Delta compression using up to 10 threads
+Compressing objects: 100% (3/3), done.
+Writing objects: 100% (4/4), 675 bytes | 675.00 KiB/s, done.
+Total 4 (delta 0), reused 0 (delta 0), pack-reused 0 (from 0)
+To https://github.com/tekletsadik19/coursera-final-project.git
+ * [new branch]      main -> main
+branch 'main' set up to track 'origin/main'.
+
+# GitHub Actions workflow run summary (from Actions tab)
+Workflow: CI
+Branch: main
+Event: push
+Status: Success
+
+Job: build
+- Set up job
+- Run actions/checkout@v4
+- Run actions/setup-python@v5 (python-version: 3.11)
+- Install dependencies
+    python -m pip install --upgrade pip
+    pip install flake8 nose
+- Lint with flake8
+    flake8 .
+- Run unit tests with nose
+    nosetests
+Job status: success
+
+All GitHub Actions workflow steps completed successfully.
