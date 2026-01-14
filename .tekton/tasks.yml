@@ -1,0 +1,33 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: cleanup-workspace
+spec:
+  workspaces:
+    - name: shared-workspace
+  steps:
+    - name: cleanup
+      image: alpine:3.19
+      script: |
+        #!/bin/sh
+        echo "Cleaning up workspace..."
+        rm -rf $(workspaces.shared-workspace.path)/.venv
+        rm -rf $(workspaces.shared-workspace.path)/**/__pycache__
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: run-tests
+spec:
+  workspaces:
+    - name: shared-workspace
+  steps:
+    - name: run-nose-tests
+      image: python:3.11-slim
+      workingDir: $(workspaces.shared-workspace.path)
+      script: |
+        #!/usr/bin/env bash
+        set -e
+        python -m pip install --upgrade pip
+        pip install nose
+        nosetests
