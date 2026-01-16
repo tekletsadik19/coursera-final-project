@@ -3,6 +3,7 @@ kind: PersistentVolumeClaim
 metadata:
   name: pipeline-workspace-pvc
 spec:
+  storageClassName: skills-network-learner
   accessModes:
     - ReadWriteOnce
   resources:
