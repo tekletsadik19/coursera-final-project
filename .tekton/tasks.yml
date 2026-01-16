@@ -65,6 +65,20 @@ spec:
   workspaces:
     - name: shared-workspace
   steps:
+    - name: debug-workspace
+      image: alpine:latest
+      script: |
+        #!/bin/sh
+        echo "=== Workspace Contents ==="
+        ls -la $(workspaces.shared-workspace.path)
+        echo "=== Checking for Dockerfile ==="
+        if [ -f "$(workspaces.shared-workspace.path)/Dockerfile" ]; then
+          echo "✓ Dockerfile found at $(workspaces.shared-workspace.path)/Dockerfile"
+          cat $(workspaces.shared-workspace.path)/Dockerfile
+        else
+          echo "✗ Dockerfile NOT found"
+          find $(workspaces.shared-workspace.path) -name "Dockerfile" || true
+        fi
     - name: build-and-push
       image: gcr.io/kaniko-project/executor:latest
       env:
@@ -73,7 +87,7 @@ spec:
       command:
         - /kaniko/executor
       args:
-        - --dockerfile=Dockerfile
+        - --dockerfile=$(workspaces.shared-workspace.path)/Dockerfile
         - --context=dir://$(workspaces.shared-workspace.path)
         - --destination=$(params.IMAGE)
         - --insecure
