@@ -1,0 +1,83 @@
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: coursera-cicd-pipeline
+spec:
+  params:
+    - name: repo-url
+      type: string
+      description: The git repository URL
+    - name: image-name
+      type: string
+      description: The container image name and tag
+  workspaces:
+    - name: shared-workspace
+  tasks:
+    # Step 1: Cleanup
+    - name: cleanup
+      taskRef:
+        name: cleanup-workspace
+      workspaces:
+        - name: shared-workspace
+          workspace: shared-workspace
+
+    # Step 2: Git Clone
+    - name: git-clone
+      taskRef:
+        name: git-clone
+        kind: ClusterTask
+      runAfter:
+        - cleanup
+      workspaces:
+        - name: output
+          workspace: shared-workspace
+      params:
+        - name: url
+          value: $(params.repo-url)
+        - name: revision
+          value: main
+        - name: deleteExisting
+          value: "true"
+
+    # Step 3: Flake8 Linting
+    - name: flake8
+      taskRef:
+        name: flake8-lint
+      runAfter:
+        - git-clone
+      workspaces:
+        - name: shared-workspace
+          workspace: shared-workspace
+
+    # Step 4: Nose Testing
+    - name: nose
+      taskRef:
+        name: run-tests
+      runAfter:
+        - flake8
+      workspaces:
+        - name: shared-workspace
+          workspace: shared-workspace
+
+    # Step 5: Buildah Build
+    - name: buildah
+      taskRef:
+        name: buildah-build
+      runAfter:
+        - nose
+      workspaces:
+        - name: shared-workspace
+          workspace: shared-workspace
+      params:
+        - name: IMAGE
+          value: $(params.image-name)
+
+    # Step 6: Deploy
+    - name: deploy
+      taskRef:
+        name: deploy
+      runAfter:
+        - buildah
+      workspaces:
+        - name: shared-workspace
+          workspace: shared-workspace

@@ -31,3 +31,68 @@ spec:
         python -m pip install --upgrade pip
         pip install nose
         nosetests
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: flake8-lint
+spec:
+  workspaces:
+    - name: shared-workspace
+  steps:
+    - name: lint
+      image: python:3.11-slim
+      workingDir: $(workspaces.shared-workspace.path)
+      script: |
+        #!/usr/bin/env bash
+        set -e
+        echo "Installing flake8..."
+        python -m pip install --upgrade pip
+        pip install flake8
+        echo "Running flake8 linting..."
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: buildah-build
+spec:
+  params:
+    - name: IMAGE
+      description: Reference of the image to build
+      type: string
+  workspaces:
+    - name: shared-workspace
+  steps:
+    - name: build-and-push
+      image: quay.io/buildah/stable:latest
+      workingDir: $(workspaces.shared-workspace.path)
+      securityContext:
+        privileged: true
+      script: |
+        #!/usr/bin/env bash
+        set -e
+        echo "Building image $(params.IMAGE)..."
+        buildah bud --format=docker --tls-verify=false -f ./Dockerfile -t $(params.IMAGE) .
+        echo "Pushing image to registry..."
+        buildah push --tls-verify=false $(params.IMAGE)
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: deploy
+spec:
+  workspaces:
+    - name: shared-workspace
+  steps:
+    - name: apply-manifests
+      image: quay.io/openshift/origin-cli:latest
+      workingDir: $(workspaces.shared-workspace.path)
+      script: |
+        #!/usr/bin/env bash
+        set -e
+        echo "Deploying application to OpenShift..."
+        oc apply -f k8s/deployment.yaml
+        echo "Deployment complete!"
+        oc get all -l app=coursera-app
