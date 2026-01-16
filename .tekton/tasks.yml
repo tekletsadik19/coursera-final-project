@@ -67,7 +67,6 @@ spec:
   steps:
     - name: build-and-push
       image: gcr.io/kaniko-project/executor:latest
-      workingDir: $(workspaces.shared-workspace.path)
       env:
         - name: DOCKER_CONFIG
           value: /tekton/home/.docker
