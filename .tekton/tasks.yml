@@ -68,15 +68,13 @@ spec:
     - name: build-and-push
       image: quay.io/buildah/stable:latest
       workingDir: $(workspaces.shared-workspace.path)
-      securityContext:
-        privileged: true
       script: |
         #!/usr/bin/env bash
         set -e
         echo "Building image $(params.IMAGE)..."
-        buildah bud --format=docker --tls-verify=false -f ./Dockerfile -t $(params.IMAGE) .
+        buildah --storage-driver=vfs bud --format=docker --tls-verify=false -f ./Dockerfile -t $(params.IMAGE) .
         echo "Pushing image to registry..."
-        buildah push --tls-verify=false $(params.IMAGE)
+        buildah --storage-driver=vfs push --tls-verify=false $(params.IMAGE)
 ---
 apiVersion: tekton.dev/v1beta1
 kind: Task
