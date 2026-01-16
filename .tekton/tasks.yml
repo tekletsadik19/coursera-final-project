@@ -66,15 +66,23 @@ spec:
     - name: shared-workspace
   steps:
     - name: build-and-push
-      image: quay.io/buildah/stable:latest
+      image: gcr.io/kaniko-project/executor:latest
       workingDir: $(workspaces.shared-workspace.path)
+      env:
+        - name: DOCKER_CONFIG
+          value: /tekton/home/.docker
       script: |
-        #!/usr/bin/env bash
+        #!/busybox/sh
         set -e
-        echo "Building image $(params.IMAGE)..."
-        buildah --storage-driver=vfs bud --format=docker --tls-verify=false -f ./Dockerfile -t $(params.IMAGE) .
-        echo "Pushing image to registry..."
-        buildah --storage-driver=vfs push --tls-verify=false $(params.IMAGE)
+        echo "Building image $(params.IMAGE) with Kaniko..."
+        /kaniko/executor \
+          --dockerfile=./Dockerfile \
+          --context=$(workspaces.shared-workspace.path) \
+          --destination=$(params.IMAGE) \
+          --insecure \
+          --skip-tls-verify \
+          --verbosity=info
+        echo "Image built and pushed successfully!"
 ---
 apiVersion: tekton.dev/v1beta1
 kind: Task
