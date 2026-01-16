@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: coursera-app
+  labels:
+    app: coursera-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: coursera-app
+  template:
+    metadata:
+      labels:
+        app: coursera-app
+    spec:
+      containers:
+      - name: coursera-app
+        image: image-registry.openshift-image-registry.svc:5000/sn-labs-tekletsadika/coursera-app:latest
+        ports:
+        - containerPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: coursera-app
+spec:
+  selector:
+    app: coursera-app
+  ports:
+  - protocol: TCP
+    port: 8080
+    targetPort: 8080
