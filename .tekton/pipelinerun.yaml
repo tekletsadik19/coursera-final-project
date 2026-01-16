@@ -12,4 +12,5 @@ spec:
       value: image-registry.openshift-image-registry.svc:5000/sn-labs-tekletsadika/coursera-app:latest
   workspaces:
     - name: shared-workspace
-      emptyDir: {}
+      persistentVolumeClaim:
+        claimName: pipeline-workspace-pvc
