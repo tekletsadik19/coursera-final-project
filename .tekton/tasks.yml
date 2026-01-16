@@ -74,8 +74,8 @@ spec:
       command:
         - /kaniko/executor
       args:
-        - --dockerfile=./Dockerfile
-        - --context=$(workspaces.shared-workspace.path)
+        - --dockerfile=Dockerfile
+        - --context=dir://$(workspaces.shared-workspace.path)
         - --destination=$(params.IMAGE)
         - --insecure
         - --skip-tls-verify
