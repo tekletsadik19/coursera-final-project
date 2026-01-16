@@ -69,16 +69,17 @@ spec:
       image: alpine:latest
       script: |
         #!/bin/sh
-        echo "=== Workspace Contents ==="
-        ls -la $(workspaces.shared-workspace.path)
-        echo "=== Checking for Dockerfile ==="
-        if [ -f "$(workspaces.shared-workspace.path)/Dockerfile" ]; then
-          echo "✓ Dockerfile found at $(workspaces.shared-workspace.path)/Dockerfile"
-          cat $(workspaces.shared-workspace.path)/Dockerfile
-        else
-          echo "✗ Dockerfile NOT found"
-          find $(workspaces.shared-workspace.path) -name "Dockerfile" || true
-        fi
+        echo "=== Workspace Path Variable ==="
+        echo "$(workspaces.shared-workspace.path)"
+
+        echo -e "\n=== Workspace Contents ===" 
+        ls -laR $(workspaces.shared-workspace.path)
+
+        echo -e "\n=== Searching for Dockerfile ===" 
+        find /workspace -name "Dockerfile" -type f 2>/dev/null || echo "No Dockerfile found anywhere in /workspace"
+
+        echo -e "\n=== All /workspace contents ==="
+        ls -la /workspace/
     - name: build-and-push
       image: gcr.io/kaniko-project/executor:latest
       env:
