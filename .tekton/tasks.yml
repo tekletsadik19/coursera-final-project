@@ -23,7 +23,7 @@ spec:
     - name: shared-workspace
   steps:
     - name: run-nose-tests
-      image: python:3.11-slim
+      image: python:3.9-slim
       workingDir: $(workspaces.shared-workspace.path)
       script: |
         #!/usr/bin/env bash
